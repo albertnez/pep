@@ -10,26 +10,35 @@ BLUE   = (  0,   0, 255)
 YELLOW = (255, 255,   0)
 GRAY   = ( 64,  64,  64)
 PURPLE = (138,  43, 226)
+ORANGE = (255, 140,   0)
 
 
 """ From highest to lowerst """
 BAR_COLORS = [
         (  0, 255,   0),
-        ( 64, 255,   0),
         (128, 255,   0),
         (192, 255,   0),
         (255, 255,   0),
         (255, 192,   0),
         (255, 128,   0),
+        (255, 64,   0),
         (255,   0,   0),
 ]
 SIZE = 8
+INDIVIDUAL_FACTOR = 10
 
 
-def muly_pixel(pixel, k):
-    return tuple([c * k for c in pixel])
+""" Multiplies a pixel by scalar k """
+def mult_pixel(pixel, k):
+    return tuple([int(c * k) for c in pixel])
 
 
+""" Generates a gradient of SIZE colors from the given color """
+def gen_gradient(color, factor = INDIVIDUAL_FACTOR):
+    return [mult_pixel(color, float(factor-i)/factor) for i in range(SIZE)]
+
+
+""" Class to manage the screen """
 class Screen():
     def __init__(self):
         self.next_timer = 0
@@ -74,6 +83,9 @@ if __name__ == '__main__':
         screen.step(1)
         for i in range(3):
             screen.plot_bar(i, bar_height)
+        screen.plot_bar(4, bar_height, gen_gradient(PURPLE))
+        screen.plot_bar(5, bar_height, gen_gradient(ORANGE))
+        screen.plot_bar(6, bar_height, gen_gradient(GREEN))
         if bar_height < SIZE:
             bar_height += 1
         sleep(1.0)
