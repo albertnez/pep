@@ -160,6 +160,7 @@ public class InsertTaskActivity extends AppCompatActivity {
             if (result.equals("Success")) {
                 Toast.makeText(getApplicationContext(), "WOLOLO", Toast.LENGTH_SHORT).show();
             }
+            finish();
         }
     }
 

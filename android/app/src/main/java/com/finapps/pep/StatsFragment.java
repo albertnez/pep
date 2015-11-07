@@ -135,14 +135,15 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
 
     private int[] getColors() {
 
-        int stacksize = 3;
+        int stacksize = 2;
 
         // have as many colors as stack-values per entry
         int[] colors = new int[stacksize];
 
-        for (int i = 0; i < stacksize; i++) {
-            colors[i] = ColorTemplate.COLORFUL_COLORS[i];
-        }
+        String android_id = Settings.Secure.getString(getContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+        colors[0] = NameToColor.getColor(android_id);
+        colors[1] = NameToColor.getColor("WOLOLOLOLOLOLOLOLOLOLOLOL");
 
         return colors;
     }
