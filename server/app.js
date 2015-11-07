@@ -133,17 +133,20 @@ app.listen(80);
 console.log("Server listening");
 
 function refreshDisplay(){
-	db.find({"name":"_pepeAccount"},function(err,data){
-		var acc= data[0];
-		var money = acc.money;
-		var ob = acc.objectives.pending.sort(function(a,b){
-			return a.date.valueOf() - b.date.valueOf();
-		})[0];
+	return function(done){
+		db.find({"name":"_pepeAccount"},function(err,data){
+			var acc= data[0];
+			var money = acc.money;
+			var ob = acc.objectives.pending.sort(function(a,b){
+				return a.date.valueOf() - b.date.valueOf();
+			})[0];
 
-		console.log(acc.objectives.pending);
-		console.log(ob);
-		child.stdin.write(money + " " +100*money/ob.value+ "\n");				
-	});
+			console.log(acc.objectives.pending);
+			console.log(ob);
+			child.stdin.write(money + " " +100*money/ob.value+ "\n");				
+			done(null,null);
+		});
+	}
 }
 
 
