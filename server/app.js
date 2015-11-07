@@ -5,7 +5,7 @@ var mongo = require('mongodb');
 var monk = require('monk');
 var co = require("co");
 
-var db = monk('localhost:27017/pepemem');
+var db = monk('jsola.me:27017/pepemem');
 db = db.get("accounts");
 
 const YEAR = 3;
