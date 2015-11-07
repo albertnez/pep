@@ -3,12 +3,16 @@ package com.finapps.pep;
 import android.app.Activity;
 import android.graphics.Paint;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v4.app.Fragment;
+import android.util.JsonReader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.Chart;
@@ -25,7 +29,22 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -40,6 +59,12 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
     private BarChart mChart;
 
     private OnFragmentInteractionListener mListener;
+
+    private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+
+    private ArrayList<BarEntry> myVals1 = new ArrayList<BarEntry>();
+
+    private YAxis yLabels;
 
     /**
      * Use this factory method to create a new instance of
@@ -78,7 +103,7 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
         mChart.setDrawValueAboveBar(true);
 
         // change the position of the y-labels
-        YAxis yLabels = mChart.getAxisLeft();
+        yLabels = mChart.getAxisLeft();
         yLabels.setValueFormatter(new MyYAxisValueFormatter());
         yLabels.setTextSize(15.0f);
 
@@ -97,13 +122,12 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
         ArrayList<String> xVals = new ArrayList<String>();
         xVals.add("");
 
-        ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
-        yVals1.add(new BarEntry(new float[] {1.0f, 2.0f, 3.0f}, 0));
+        myVals1.add(new BarEntry(new float[] {1.0f, 2.0f, 3.0f}, 0));
 
         // From server too
         yLabels.setAxisMaxValue(20f);
 
-        BarDataSet set1 = new BarDataSet(yVals1, " ");
+        BarDataSet set1 = new BarDataSet(myVals1, " ");
         set1.setColors(getColors());
         set1.setStackLabels(new String[] { "PPL1", "PPL2", "PPL3" });
 
@@ -193,6 +217,197 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         public void onFragmentInteraction(Uri uri);
+    }
+
+    private class GetObjectivesTask extends AsyncTask<Void, Void, String> {
+        @Override
+        protected String doInBackground(Void... params) {
+
+            // params comes from the execute() call: params[0] is the url.
+            try {
+                return getObjectives();
+            } catch (IOException e) {
+                return "Unable to retrieve web page. URL may be invalid.";
+            }
+        }
+
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String result) {
+            ArrayList<JSONObject> listdata = new ArrayList<JSONObject>();
+            try {
+                JSONArray jArray = new JSONArray(result);
+                if (jArray != null) {
+                    for (int i = 0; i < jArray.length(); i++) {
+                        listdata.add((JSONObject)jArray.get(i));
+                    }
+                }
+
+                Collections.sort(listdata, new Comparator<JSONObject>() {
+                    @Override
+                    public int compare(JSONObject date1, JSONObject date2) {
+                        try {
+                            Date d1 = dateFormatter.parse(date1.getString("date"));
+                            Date d2 = dateFormatter.parse(date2.getString("date"));
+                            return (d1.before(d2)) ? 1 : 0;
+                        }
+                        catch (JSONException e1) {
+
+                        }
+                        catch (ParseException e2) {
+
+                        }
+                        return 0;
+                    }
+                });
+
+                ArrayList<JSONObject> retain =
+                        new ArrayList<JSONObject>(listdata.size());
+                Date d = new Date(), dr = null;
+                boolean picked = false;
+                for (JSONObject jo : listdata) {
+                    Date dp = dateFormatter.parse(jo.getString("date"));
+                    if (dp.after(d)) {
+                        if (!picked) {
+                            dr = d;
+                            picked = true;
+                            retain.add(jo);
+                        }
+                        else {
+                            if (Math.abs(dr.getTime() - dp.getTime()) < 12*3600) {
+                                retain.add(jo);
+                            }
+                        }
+                    }
+                }
+// either assign 'retain' to 'wsResponse.Dealers' or ...
+                listdata.clear();
+                listdata.addAll(retain);
+
+                // Ara que ja només tenim els necessaris
+                float total = 0.0f;
+                for (JSONObject jo : listdata) {
+                    total += jo.getDouble("value");
+                }
+
+                yLabels.setAxisMaxValue(total);
+
+                new GetMuneyzTask().;
+
+            }
+            catch (JSONException e) {
+
+            }
+            catch (ParseException e) {
+
+            }
+        }
+    }
+
+    private class GetMuneyzTask extends AsyncTask<Void, Void, String> {
+        @Override
+        protected String doInBackground(Void... params) {
+
+            // params comes from the execute() call: params[0] is the url.
+            try {
+                return getMuneyz();
+            } catch (IOException e) {
+                return "Unable to retrieve web page. URL may be invalid.";
+            }
+        }
+
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String result) {
+            ArrayList<JSONObject> listdata = new ArrayList<JSONObject>();
+            try {
+                JSONArray jArray = new JSONArray(result);
+                if (jArray != null) {
+                    for (int i = 0; i < jArray.length(); i++) {
+                        listdata.add((JSONObject)jArray.get(i));
+                    }
+                }
+
+                String android_id = Settings.Secure.getString(getContext().getContentResolver(),
+                        Settings.Secure.ANDROID_ID);
+                float memoney = 0.f, othmoney = 0.f;
+
+
+                for (JSONObject jo : listdata) {
+                    if (jo.getString("name").equals(android_id)) {
+                        memoney += ;
+                    }
+                    else {
+                        othmoney += ;
+                    }
+                }
+                myVals1.clear();
+                myVals1.add(new BarEntry(new float[] {memoney, othmoney}, 0));
+
+                BarDataSet set1 = new BarDataSet(myVals1, " ");
+                set1.setColors(getColors());
+                set1.setStackLabels(new String[] {"Me", "Others"});
+
+                ArrayList<BarDataSet> dataSets = new ArrayList<>();
+                dataSets.add(set1);
+
+                BarData data = new BarData(xVals, dataSets);
+                data.setValueFormatter(new MyValueFormatter());
+                data.setValueTextSize(15.0f);
+
+                mChart.setData(data);
+                mChart.invalidate();
+
+            }
+            catch (JSONException e) {
+
+            }
+            catch (ParseException e) {
+
+            }
+        }
+    }
+
+    private String getMuneyz() throws IOException {
+        InputStream is = null;
+
+        try {
+            URL url = new URL("http://192.168.10.11/balance");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setReadTimeout(60000);
+            conn.setConnectTimeout(75000);
+            conn.setDoOutput(true);
+            conn.setDoInput(true);
+            conn.setRequestMethod("GET");
+
+            // Starts the query
+            conn.connect();
+            int response = conn.getResponseCode();
+            Log.d("LO", "The response is: " + response);
+            is = conn.getInputStream();
+
+            // Convert the InputStream into a string
+            return convertInputStreamToString(is);
+
+            // Makes sure that the InputStream is closed after the app is
+            // finished using it.
+        } finally {
+            if (is != null) {
+                is.close();
+            }
+        }
+    }
+
+    private static String convertInputStreamToString(InputStream inputStream) throws IOException{
+        BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
+        String line = "";
+        String result = "";
+        while((line = bufferedReader.readLine()) != null)
+            result += line;
+
+        inputStream.close();
+        return result;
+
     }
 
 }
