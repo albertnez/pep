@@ -1,6 +1,7 @@
 package com.finapps.pep;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -80,9 +81,17 @@ public class TransactionsFragment extends Fragment {
         SimpleAdapter adapter = new SimpleAdapter(
                 getContext(), data, android.R.layout.simple_expandable_list_item_2,
                 new String[]{KEY_NAME, KEY_DESC},
-                new int[]{android.R.id.text1, android.R.id.text2});
-
+                new int[]{android.R.id.text1, android.R.id.text2}) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View v = super.getView(position, convertView, parent);
+                // Set color here.
+                // v.setBackgroundColor(Color.BLUE);
+                return v;
+            }
+        };
         mTransactions.setAdapter(adapter);
+
         return view;
     }
 
