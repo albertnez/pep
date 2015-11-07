@@ -73,7 +73,11 @@ router.get(/\/objectives/, function*(){
 	var pepeaccount = yield findAccount("_pepeAccount");
 	if(typeof pepeaccount == "undefined") pepeaccount = yield createAccount("_pepeAccount");
 
-	this.body = pepeaccount.objectives.pending.concat(pepeaccount.objectives.done);
+	this.body = pepeaccount.objectives.pending.concat(pepeaccount.objectives.done)
+		.map(function(el){
+			el.date = el.date.valueOf();
+			return el;
+		});
 });
 
 router.get(/\/balance/, function*(){
