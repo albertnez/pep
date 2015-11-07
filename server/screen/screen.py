@@ -79,7 +79,7 @@ class Screen():
 
     def plot_balance(self):
         for i in range(SIZE):
-            self.plot_bar(i, self.general_level, BAR_COLORS)
+            self.plot_bar(i, max(1, self.general_level), BAR_COLORS)
 
     def show_amount(self):
         self.show_message(str(self.balance), 
