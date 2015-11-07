@@ -1,24 +1,16 @@
 package com.finapps.pep;
 
 import android.net.Uri;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.os.Bundle;
 import android.support.design.widget.TabLayout;
-import android.support.v7.app.AppCompatActivity;
-
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.os.Bundle;
-import android.view.LayoutInflater;
+import android.support.v7.app.AppCompatActivity;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-
-import android.widget.NumberPicker;
-import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity implements
         StatsFragment.OnFragmentInteractionListener,
@@ -39,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+    private PayFragment mPayFragment;
 
     private int mMax;
 
@@ -61,6 +54,17 @@ public class MainActivity extends AppCompatActivity implements
         // Give the TabLayout the ViewPager
         TabLayout tabLayout = (TabLayout) findViewById(R.id.sliding_tabs);
         tabLayout.setupWithViewPager(mViewPager);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if ((keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)){
+            TabLayout tabLayout = (TabLayout) findViewById(R.id.sliding_tabs);
+            if (tabLayout.getSelectedTabPosition() == 0) {
+                mPayFragment.NFCdetected();
+            }
+        }
+        return true;
     }
 
 
@@ -106,7 +110,8 @@ public class MainActivity extends AppCompatActivity implements
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
             if (position == 0) {
-                return PayFragment.newInstance();
+                mPayFragment = PayFragment.newInstance();
+                return mPayFragment;
             }
             else if (position == 1) {
                 return StatsFragment.newInstance();
