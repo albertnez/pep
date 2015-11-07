@@ -78,21 +78,9 @@ public class TransactionsFragment extends Fragment {
 
         // Sample values
         List<String> names = new ArrayList<>();
-        names.add("Alessio");
-        names.add("Biene");
         List<String> amounts = new ArrayList<>();
-        amounts.add("15/05/2015 - 234e");
-        amounts.add("03/05/2015 - 1337e");
 
         data = new ArrayList<>();
-        Map map = new HashMap<>();
-        map.put(KEY_NAME, "Antoni");
-        map.put(KEY_DESC, "15/06/2015 - 130 euros");
-        data.add(map);
-        map = new HashMap<>();
-        map.put(KEY_NAME, "Bernat");
-        map.put(KEY_DESC, "12/03/2915 - 394 euros");
-        data.add(map);
 
         adapter = new SimpleAdapter(
                 getContext(), data, android.R.layout.simple_expandable_list_item_2,
@@ -182,7 +170,7 @@ public class TransactionsFragment extends Fragment {
                 String[] names = {"Albert", "Antoni", "Bernat", "Jordi"};
                 for (JSONObject jo : listdata) {
                     Map map = new HashMap<>();
-                    map.put(KEY_NAME, names[((int)Math.random()*4)]);
+                    map.put(KEY_NAME, names[(int)(Math.random()*4)]);
                     Long d = jo.getLong("createdAt");
                     String description = dateFormatter.format(new Date(d)) + " - " + jo.getString("val");
                     map.put(KEY_DESC, description);
