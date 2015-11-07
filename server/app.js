@@ -113,6 +113,9 @@ router.get(/\/transactions\/(day|month|year)/, function*(){
 
 	this.body = pepeaccount.history.filter(function(el){
 		return el.createdAt.valueOf() > to.valueOf();
+	}).map(function(el){
+		el.createdAt = el.createdAt.valueOf();
+		return el;
 	});
 
 
