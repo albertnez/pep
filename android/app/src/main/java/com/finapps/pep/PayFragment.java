@@ -1,13 +1,16 @@
 package com.finapps.pep;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.NumberPicker;
+import android.widget.Toast;
 
 
 /**
@@ -51,6 +54,14 @@ public class PayFragment extends Fragment {
         NumberPicker np = (NumberPicker) v.findViewById(R.id.numberPicker);
         np.setMinValue(1);
         np.setMaxValue(1000);
+
+        FloatingActionButton myFab = (FloatingActionButton)  v.findViewById(R.id.fab);
+        myFab.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), InsertTaskActivity.class);
+                startActivity(intent);
+            }
+        });
         return v;
     }
 
