@@ -39,10 +39,6 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
 
     private BarChart mChart;
 
-    protected String[] mMonths = new String[] {
-            "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"
-    };
-
     private OnFragmentInteractionListener mListener;
 
     /**
@@ -67,12 +63,14 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
         mChart = (BarChart) v.findViewById(R.id.chart1);
         mChart.setOnChartValueSelectedListener(this);
 
+        mChart.setDescription(" ");
+
         // if more than 60 entries are displayed in the chart, no values will be
         // drawn
         mChart.setMaxVisibleValueCount(60);
 
         // scaling can now only be done on x- and y-axis separately
-        mChart.setPinchZoom(false);
+        mChart.setTouchEnabled(false);
 
         mChart.setDrawGridBackground(false);
         mChart.setDrawBarShadow(false);
@@ -82,14 +80,12 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
         // change the position of the y-labels
         YAxis yLabels = mChart.getAxisLeft();
         yLabels.setValueFormatter(new MyYAxisValueFormatter());
+        yLabels.setTextSize(15.0f);
 
         mChart.getAxisRight().setEnabled(false);
 
         XAxis xLabels = mChart.getXAxis();
         xLabels.setPosition(XAxisPosition.TOP);
-
-        //mChart.setDrawXLabels(false);
-        // mChart.setDrawYLabels(false);
 
         Legend l = mChart.getLegend();
         l.setPosition(LegendPosition.BELOW_CHART_RIGHT);
@@ -107,7 +103,7 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
         // From server too
         yLabels.setAxisMaxValue(20f);
 
-        BarDataSet set1 = new BarDataSet(yVals1, "Total money for next due date");
+        BarDataSet set1 = new BarDataSet(yVals1, " ");
         set1.setColors(getColors());
         set1.setStackLabels(new String[] { "PPL1", "PPL2", "PPL3" });
 
@@ -116,6 +112,7 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
 
         BarData data = new BarData(xVals, dataSets);
         data.setValueFormatter(new MyValueFormatter());
+        data.setValueTextSize(15.0f);
 
         mChart.setData(data);
         mChart.invalidate();
