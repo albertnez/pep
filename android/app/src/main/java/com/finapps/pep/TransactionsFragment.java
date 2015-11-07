@@ -1,19 +1,29 @@
 package com.finapps.pep;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,9 +42,12 @@ public class TransactionsFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
+    private List<Map<String, String>> data;
     private static final String KEY_NAME = "NAME";
     private static final String KEY_DESC = "DESC";
     private ListView mTransactions;
+    private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+    private SimpleAdapter adapter;
 
     /**
      * Use this factory method to create a new instance of
@@ -70,7 +83,7 @@ public class TransactionsFragment extends Fragment {
         amounts.add("15/05/2015 - 234e");
         amounts.add("03/05/2015 - 1337e");
 
-        List<Map<String, String>> data = new ArrayList<>();
+        data = new ArrayList<>();
         Map map = new HashMap<>();
         map.put(KEY_NAME, "Antoni");
         map.put(KEY_DESC, "15/06/2015 - 130 euros");
@@ -80,7 +93,7 @@ public class TransactionsFragment extends Fragment {
         map.put(KEY_DESC, "12/03/2915 - 394 euros");
         data.add(map);
 
-        SimpleAdapter adapter = new SimpleAdapter(
+        adapter = new SimpleAdapter(
                 getContext(), data, android.R.layout.simple_expandable_list_item_2,
                 new String[]{KEY_NAME, KEY_DESC},
                 new int[]{android.R.id.text1, android.R.id.text2}) {
@@ -102,6 +115,12 @@ public class TransactionsFragment extends Fragment {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
         }
+    }
+
+    @Override
+    public void onResume () {
+        super.onResume();
+        new GetObjectivesTask().execute();
     }
 
     @Override
@@ -136,4 +155,84 @@ public class TransactionsFragment extends Fragment {
         public void onFragmentInteraction(Uri uri);
     }
 
+    private class GetObjectivesTask extends AsyncTask<Void, Void, String> {
+        @Override
+        protected String doInBackground(Void... params) {
+            // params comes from the execute() call: params[0] is the url.
+            try {
+                return getObjectives();
+            } catch (IOException e) {
+                return "Unable to retrieve web page. URL may be invalid.";
+            }
+        }
+
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String result) {
+            ArrayList<JSONObject> listdata = new ArrayList<JSONObject>();
+            try {
+                JSONArray jArray = new JSONArray(result);
+                if (jArray != null) {
+                    for (int i = 0; i < jArray.length(); i++) {
+                        listdata.add((JSONObject)jArray.get(i));
+                    }
+                }
+
+                for (JSONObject jo : listdata) {
+                    Map map = new HashMap<>();
+                    map.put(KEY_NAME, jo.getString("from"));
+                    map.put(KEY_DESC, jo.getString("createdAt"));
+                    data.add(map);
+                }
+
+                adapter.notifyDataSetChanged();
+
+            }
+            catch (JSONException e) {
+
+            }
+        }
+    }
+
+    private String getObjectives() throws IOException {
+        InputStream is = null;
+
+        try {
+            URL url = new URL("http://192.168.10.11/transactions/year");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setReadTimeout(60000);
+            conn.setConnectTimeout(75000);
+            conn.setDoOutput(true);
+            conn.setDoInput(true);
+            conn.setRequestMethod("GET");
+
+            // Starts the query
+            conn.connect();
+            int response = conn.getResponseCode();
+            Log.d("LO", "The response is: " + response);
+            is = conn.getInputStream();
+
+            // Convert the InputStream into a string
+            return convertInputStreamToString(is);
+
+            // Makes sure that the InputStream is closed after the app is
+            // finished using it.
+        } finally {
+            if (is != null) {
+                is.close();
+            }
+        }
+    }
+
+    private static String convertInputStreamToString(InputStream inputStream) throws IOException{
+        BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
+        String line = "";
+        String result = "";
+        while((line = bufferedReader.readLine()) != null)
+            result += line;
+
+        inputStream.close();
+        return result;
+
+    }
 }
