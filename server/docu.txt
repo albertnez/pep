@@ -1,0 +1,40 @@
+GET /\/objectives/
+
+[
+    {
+        "createdAt": "2015-11-07T02:47:38.160Z",
+        "name": "day",
+        "date": "2015-11-08T02:31:39.879Z",
+        "value": 200,
+        "period": 1
+    }
+]
+
+
+GET /\/transactions\/(day|month|year)/
+
+[
+    {
+        "createdAt": "2015-11-07T03:14:32.075Z",
+        "to": "ES12-9200-8758-8091-8153-2189",
+        "from": "ES24-4708-469-8360-3416-2511",
+        "val": 30.2,
+        "total": 445.1022471059113
+    }
+]
+
+POST /\/(.*)\/pay\/([0-9\.]+)/
+
+-Param 1 : name
+-Param 2 : amount
+
+"Success"
+
+
+POST /\/objective/
+
+Content-Type: application/x-www-form-urlencoded
+
+name, date, value, period
+
+"Success"

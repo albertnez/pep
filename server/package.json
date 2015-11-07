@@ -1,0 +1,17 @@
+{
+  "name": "application-name",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "koa": "1.0",
+    "mongodb": "*",
+    "monk": "*",
+    "co":"*",
+    "koa-body":"*",
+    "koa-router":"5.1.2",
+    "koa-static":"*"
+  }
+}
