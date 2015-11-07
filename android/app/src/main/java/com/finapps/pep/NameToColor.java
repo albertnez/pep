@@ -1,5 +1,8 @@
 package com.finapps.pep;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Class to get a color from a name.
  */
@@ -7,6 +10,8 @@ public final class NameToColor {
     private NameToColor() {
         throw new AssertionError();
     }
+
+    private static Map<String, Integer> map = new HashMap<>();
 
     private static final int colors[] = {
             0xCAFAF700,
@@ -18,9 +23,16 @@ public final class NameToColor {
             0xFFBAFE00,
             0xBAB3FF00,
             0xFFB3B300,
+            0xE1B5FF00,
+            0xB5F8FF00,
+            0xC4E87600,
+            0xCFCFCF00,
     };
 
     public static int getColor(String name) {
-        return colors[name.hashCode()%colors.length];
+        if (!map.containsKey(name)) {
+            map.put(name, map.size());
+        }
+        return colors[map.get(name)];
     }
 }
