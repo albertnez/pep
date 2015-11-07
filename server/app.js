@@ -4,8 +4,29 @@ var router  = require("koa-router")();
 var monk = require('monk');
 var co = require("co");
 
+var spawn = require('child_process').spawn,
+    child = spawn('python',['./screen/screen.py']);
+
+child.stdin.setEncoding('utf-8');
+child.stdout.pipe(process.stdout);
+
+
+
+
 var db = monk('jsola.me:27017/pepemem');
 db = db.get("accounts");
+
+db.find({"name":"_pepeAccount"},function(err,data){
+	var acc= data[0];
+	var money = acc.money;
+	var ob = acc.objectives.pending.sort(function(a,b){
+		return a.date.valueOf() - b.date.valueOf();
+	})[0];
+
+	console.log(acc.objectives.pending);
+	console.log(ob);
+	child.stdin.write(money + " " +100*money/ob.value+ "\n");				
+});
 
 const YEAR = 3;
 const MONTH = 2;
@@ -28,7 +49,7 @@ router.post(/\/(.*)\/pay\/([0-9\.]+)/, function*(){
 		account = yield createAccount(this.params[0]);
 	//console.log(account);
 	yield payAccount(account,parseFloat(this.params[1]));
-
+	yield refreshDisplay();
 	this.body="Success";
 
 });
@@ -52,7 +73,11 @@ router.get(/\/objectives/, function*(){
 	var pepeaccount = yield findAccount("_pepeAccount");
 	if(typeof pepeaccount == "undefined") pepeaccount = yield createAccount("_pepeAccount");
 
-	this.body = pepeaccount.objectives.pending.concat(pepeaccount.objectives.done);
+	this.body = pepeaccount.objectives.pending.concat(pepeaccount.objectives.done)
+		.map(function(el){
+			el.date = el.date.valueOf();
+			return el;
+		});
 });
 
 router.get(/\/balance/, function*(){
@@ -106,6 +131,23 @@ app.use(require('koa-static')("./static", {}));
 
 app.listen(80);
 console.log("Server listening");
+
+function refreshDisplay(){
+	return function(done){
+		db.find({"name":"_pepeAccount"},function(err,data){
+			var acc= data[0];
+			var money = acc.money;
+			var ob = acc.objectives.pending.sort(function(a,b){
+				return a.date.valueOf() - b.date.valueOf();
+			})[0];
+
+			console.log(acc.objectives.pending);
+			console.log(ob);
+			child.stdin.write(money + " " +100*money/ob.value+ "\n");				
+			done(null,null);
+		});
+	}
+}
 
 
 function findAllAccounts(){
@@ -202,10 +244,14 @@ function checkObjectives(){
 		var pepeaccount = yield findAccount("_pepeAccount");
 		if(typeof pepeaccount == "undefined") pepeaccount = yield createAccount("_pepeAccount");
 		var i = 0; 
+		var obj = true;
 		while(i < pepeaccount.objectives.pending.length){
-			if(checkObjective(pepeaccount,i)) ++i;
+			var r = checkObjective(pepeaccount,i);
+			obj = obj&&r;
+			if(r) ++i;
 		}
 		yield saveAccount(pepeaccount);
+		if(!obj)yield refreshDisplay();
 	});
 }
 
