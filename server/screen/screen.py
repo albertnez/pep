@@ -1,3 +1,5 @@
+import sys
+import select
 from sense_hat import SenseHat
 from time import sleep
 from random import randint
@@ -26,7 +28,18 @@ BAR_COLORS = [
 ]
 SIZE = 8
 INDIVIDUAL_FACTOR = 10
+SLEEP_TIME = 0.1
 
+CHECK = [
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 1],
+        [0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 1, 0, 0],
+        [1, 0, 0, 0, 1, 0, 0, 0],
+        [0, 1, 0, 1, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        ]
 
 """ Multiplies a pixel by scalar k """
 def mult_pixel(pixel, k):
@@ -41,13 +54,12 @@ def gen_gradient(color, factor = INDIVIDUAL_FACTOR):
 """ Class to manage the screen """
 class Screen():
     def __init__(self):
-        self.next_timer = 0
-        self.next_total_time = 16
-        self.num_dots_next = 8
-        self.time_per_dot = self.next_total_time / self.num_dots_next
-        self.cur_active_dots = 0
         self.sense = SenseHat()
+        self.general_level = 0
+        self.wait_time = 4
+        self.cur_time = 0
         self.clear()
+        self.balance = 0
 
     def clear(self):
         for i in range(SIZE):
@@ -58,16 +70,6 @@ class Screen():
         for i in range(0, 7):
             self.sense.set_pixel(x, i, BLACK)
 
-    def set_next_dot(self, i):
-        self.sense.set_pixel(7, 7-i, GRAY)
-        
-    def step(self, amount):
-        self.next_timer += amount
-        act_dots = self.next_timer / self.time_per_dot
-        while act_dots > self.cur_active_dots:
-            self.set_next_dot(self.cur_active_dots)
-            self.cur_active_dots += 1
-
     def plot_bar(self, x, height, colors = None):
         if colors is None:
             colors = BAR_COLORS
@@ -75,18 +77,52 @@ class Screen():
         for i in range(height):
             self.sense.set_pixel(x, 7 - i, colors[7 - i])
 
+    def plot_balance(self):
+        for i in range(SIZE):
+            self.plot_bar(i, self.general_level, BAR_COLORS)
+
+    def show_amount(self):
+        self.show_message(str(self.balance), 
+                          color = list(BAR_COLORS[min(7, 8 - self.general_level)]))
+
+    def show_message(self, message, speed = 0.1, color = [255,255,255]):
+        self.sense.show_message(message, speed, color)
+        self.plot_balance()
+
+    """ Parses an input in the form:
+        balance percentage """
+    def parse_input(self, line):
+        self.cur_time = 0
+        # Split balance and percentage.
+        [self.balance, percent] = [float(x) for x in line.split()]
+        self.general_level = int(round(percent/100.0 * SIZE))
+        print(self.general_level)
+        self.draw_check()
+
+    def draw_check(self):
+        types = [BLACK, GREEN]
+        pixels = [types[CHECK[i/SIZE][i%SIZE]] for i in range(SIZE * SIZE)]
+        self.sense.set_pixels(pixels)
+
+    def no_text(self):
+        self.cur_time += SLEEP_TIME
+        if self.cur_time > self.wait_time:
+            self.cur_time = 0
+            self.show_amount()
+
 
 if __name__ == '__main__':
     screen = Screen()
-    bar_height = 0
+    # If there's input ready, do something, else do something
+    # else. Note timeout is zero so select won't block at all.
     while True:
-        screen.step(1)
-        for i in range(3):
-            screen.plot_bar(i, bar_height)
-        screen.plot_bar(4, bar_height, gen_gradient(PURPLE))
-        screen.plot_bar(5, bar_height, gen_gradient(ORANGE))
-        screen.plot_bar(6, bar_height, gen_gradient(GREEN))
-        if bar_height < SIZE:
-            bar_height += 1
-        sleep(1.0)
-
+        while sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+            line = sys.stdin.readline()
+            if line:
+                screen.parse_input(line)
+            else: # an empty line means stdin has been closed
+                print('eof')
+                exit(0)
+        else:
+            screen.no_text()
+        sleep(SLEEP_TIME)
