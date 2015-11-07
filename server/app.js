@@ -237,11 +237,14 @@ function checkObjectives(){
 		var pepeaccount = yield findAccount("_pepeAccount");
 		if(typeof pepeaccount == "undefined") pepeaccount = yield createAccount("_pepeAccount");
 		var i = 0; 
+		var obj = true;
 		while(i < pepeaccount.objectives.pending.length){
-			if(checkObjective(pepeaccount,i)) ++i;
+			var r = checkObjective(pepeaccount,i);
+			obj = obj&&r;
+			if(r) ++i;
 		}
 		yield saveAccount(pepeaccount);
-		yield refreshDisplay();
+		if(!obj)yield refreshDisplay();
 	});
 }
 
