@@ -1,12 +1,21 @@
 package com.finapps.pep;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -20,6 +29,10 @@ import android.view.ViewGroup;
 public class TransactionsFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
+
+    private static final String KEY_NAME = "NAME";
+    private static final String KEY_DESC = "DESC";
+    private ListView mTransactions;
 
     /**
      * Use this factory method to create a new instance of
@@ -44,8 +57,42 @@ public class TransactionsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_transactions, container, false);
+        View view = inflater.inflate(R.layout.fragment_transactions, container, false);
+        mTransactions = (ListView) view.findViewById(R.id.transactionsList);
+
+        // Sample values
+        List<String> names = new ArrayList<>();
+        names.add("Alessio");
+        names.add("Biene");
+        List<String> amounts = new ArrayList<>();
+        amounts.add("15/05/2015 - 234e");
+        amounts.add("03/05/2015 - 1337e");
+
+        List<Map<String, String>> data = new ArrayList<>();
+        Map map = new HashMap<>();
+        map.put(KEY_NAME, "Antoni");
+        map.put(KEY_DESC, "15/06/2015 - 130 euros");
+        data.add(map);
+        map = new HashMap<>();
+        map.put(KEY_NAME, "Bernat");
+        map.put(KEY_DESC, "12/03/2915 - 394 euros");
+        data.add(map);
+
+        SimpleAdapter adapter = new SimpleAdapter(
+                getContext(), data, android.R.layout.simple_expandable_list_item_2,
+                new String[]{KEY_NAME, KEY_DESC},
+                new int[]{android.R.id.text1, android.R.id.text2}) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View v = super.getView(position, convertView, parent);
+                // Set color here.
+                // v.setBackgroundColor(Color.BLUE);
+                return v;
+            }
+        };
+        mTransactions.setAdapter(adapter);
+
+        return view;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
