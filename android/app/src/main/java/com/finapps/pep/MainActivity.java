@@ -3,8 +3,8 @@ package com.finapps.pep;
 import android.net.Uri;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -17,10 +17,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.widget.ListView;
 import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity implements StatsFragment.OnFragmentInteractionListener
+public class MainActivity extends AppCompatActivity implements
+        StatsFragment.OnFragmentInteractionListener,
+        TransactionsFragment.OnFragmentInteractionListener,
+        PayFragment.OnFragmentInteractionListener
 {
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -42,8 +44,6 @@ public class MainActivity extends AppCompatActivity implements StatsFragment.OnF
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -52,15 +52,11 @@ public class MainActivity extends AppCompatActivity implements StatsFragment.OnF
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
+        // Give the TabLayout the ViewPager
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.sliding_tabs);
+        tabLayout.setupWithViewPager(mViewPager);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+
 
     }
 
@@ -106,25 +102,33 @@ public class MainActivity extends AppCompatActivity implements StatsFragment.OnF
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            if (position == 1) {
+            if (position == 0) {
+                return PayFragment.newInstance();
+            }
+            else if (position == 1) {
                 return StatsFragment.newInstance();
             }
-            return PlaceholderFragment.newInstance(position);
+            else if (position == 2) {
+                return TransactionsFragment.newInstance();
+            }
+            return null;
         }
 
         @Override
         public int getCount() {
-            // Show 2 total pages.
-            return 2;
+            // Show 3 total pages.
+            return 3;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "SECTION 1";
+                    return "Pay";
                 case 1:
-                    return "SECTION 2";
+                    return "Balance";
+                case 2:
+                    return "Transactions";
             }
             return null;
         }
