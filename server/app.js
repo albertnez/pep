@@ -4,8 +4,29 @@ var router  = require("koa-router")();
 var monk = require('monk');
 var co = require("co");
 
+var spawn = require('child_process').spawn,
+    child = spawn('python',['./screen/screen.py']);
+
+child.stdin.setEncoding('utf-8');
+child.stdout.pipe(process.stdout);
+
+
+
+
 var db = monk('jsola.me:27017/pepemem');
 db = db.get("accounts");
+
+db.find({"name":"_pepeAccount"},function(err,data){
+	var acc= data[0];
+	var money = acc.money;
+	var ob = acc.objectives.pending.sort(function(a,b){
+		return a.date.valueOf() - b.date.valueOf();
+	})[0];
+
+	console.log(acc.objectives.pending);
+	console.log(ob);
+	child.stdin.write(money + " " +100*money/ob.value+ "\n");				
+});
 
 const YEAR = 3;
 const MONTH = 2;
@@ -106,6 +127,20 @@ app.use(require('koa-static')("./static", {}));
 
 app.listen(80);
 console.log("Server listening");
+
+function refreshDisplay(){
+	db.find({"name":"_pepeAccount"},function(err,data){
+		var acc= data[0];
+		var money = acc.money;
+		var ob = acc.objectives.pending.sort(function(a,b){
+			return a.date.valueOf() - b.date.valueOf();
+		})[0];
+
+		console.log(acc.objectives.pending);
+		console.log(ob);
+		child.stdin.write(money + " " +100*money/ob.value+ "\n");				
+	});
+}
 
 
 function findAllAccounts(){
