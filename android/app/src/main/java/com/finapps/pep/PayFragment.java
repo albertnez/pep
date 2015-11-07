@@ -9,26 +9,18 @@ import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.util.Log;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.NumberPicker;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -38,7 +30,7 @@ import java.util.List;
  * Use the {@link PayFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class PayFragment extends Fragment implements NumberPicker.OnValueChangeListener {
+public class PayFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
@@ -75,6 +67,12 @@ public class PayFragment extends Fragment implements NumberPicker.OnValueChangeL
         NumberPicker np = (NumberPicker) v.findViewById(R.id.numberPicker);
         np.setMinValue(1);
         np.setMaxValue(1000);
+        np.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+            @Override
+            public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+                mAmount = newVal;
+            }
+        });
 
         FloatingActionButton myFab = (FloatingActionButton)  v.findViewById(R.id.fab);
         myFab.setOnClickListener(new View.OnClickListener() {
@@ -87,10 +85,7 @@ public class PayFragment extends Fragment implements NumberPicker.OnValueChangeL
         return v;
     }
 
-    @Override
-    public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
-        mAmount = newVal;
-    }
+
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
@@ -129,6 +124,12 @@ public class PayFragment extends Fragment implements NumberPicker.OnValueChangeL
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         public void onFragmentInteraction(Uri uri);
+    }
+
+    public void NFCdetected() {
+        String money = Integer.toString(mAmount);
+        Toast.makeText(getActivity(), "You paid " + money, Toast.LENGTH_SHORT).show();
+        // doPayMoney();
     }
 
     private void doPayMoney() {
