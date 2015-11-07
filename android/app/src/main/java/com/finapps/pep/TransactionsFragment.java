@@ -25,6 +25,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,7 @@ public class TransactionsFragment extends Fragment {
     private static final String KEY_NAME = "NAME";
     private static final String KEY_DESC = "DESC";
     private ListView mTransactions;
-    private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+    private SimpleDateFormat dateFormatter = new SimpleDateFormat("dd/MM/yyyy");
     private SimpleAdapter adapter;
 
     /**
@@ -178,10 +179,13 @@ public class TransactionsFragment extends Fragment {
                     }
                 }
 
+                String[] names = {"Albert", "Antoni", "Bernat", "Jordi"};
                 for (JSONObject jo : listdata) {
                     Map map = new HashMap<>();
-                    map.put(KEY_NAME, jo.getString("from"));
-                    map.put(KEY_DESC, jo.getString("createdAt"));
+                    map.put(KEY_NAME, names[((int)Math.random()*4)]);
+                    Long d = jo.getLong("createdAt");
+                    String description = dateFormatter.format(new Date(d)) + " - " + jo.getString("val");
+                    map.put(KEY_DESC, description);
                     data.add(map);
                 }
 
