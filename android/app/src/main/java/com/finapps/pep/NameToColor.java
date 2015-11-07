@@ -14,6 +14,10 @@ public final class NameToColor {
             0xDFCAFA00,
             0xFACACA00,
             0xF8FACA00,
+            0x96FFF800,
+            0xFFBAFE00,
+            0xBAB3FF00,
+            0xFFB3B300,
     };
 
     public static int getColor(String name) {

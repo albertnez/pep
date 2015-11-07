@@ -1,21 +1,17 @@
 package com.finapps.pep;
 
 import android.app.Activity;
-import android.graphics.Paint;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.Fragment;
-import android.util.JsonReader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.BarChart;
-import com.github.mikephil.charting.charts.Chart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.Legend.LegendPosition;
 import com.github.mikephil.charting.components.XAxis;
@@ -39,8 +35,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -59,8 +53,6 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
     private BarChart mChart;
 
     private OnFragmentInteractionListener mListener;
-
-    private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
     private ArrayList<BarEntry> myVals1 = new ArrayList<BarEntry>();
 
@@ -214,6 +206,7 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
         // onPostExecute displays the results of the AsyncTask.
         @Override
         protected void onPostExecute(String result) {
+            Log.v("LO", result);
             ArrayList<JSONObject> listdata = new ArrayList<JSONObject>();
             try {
                 JSONArray jArray = new JSONArray(result);
@@ -227,14 +220,10 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
                     @Override
                     public int compare(JSONObject date1, JSONObject date2) {
                         try {
-                            Date d1 = dateFormatter.parse(date1.getString("date"));
-                            Date d2 = dateFormatter.parse(date2.getString("date"));
-                            return (d1.before(d2)) ? 1 : 0;
-                        }
-                        catch (JSONException e1) {
-
-                        }
-                        catch (ParseException e2) {
+                            Long d1 = date1.getLong("date");
+                            Long d2 = date2.getLong("date");
+                            return (d1 < d2) ? 1 : 0;
+                        } catch (JSONException e1) {
 
                         }
                         return 0;
@@ -243,18 +232,18 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
 
                 ArrayList<JSONObject> retain =
                         new ArrayList<JSONObject>(listdata.size());
-                Date d = new Date(), dr = null;
+                Long d = new Date().getTime(), dr = null;
                 boolean picked = false;
                 for (JSONObject jo : listdata) {
-                    Date dp = dateFormatter.parse(jo.getString("date"));
-                    if (dp.after(d)) {
+                    Long dp = jo.getLong("date");
+                    if (dp > d) {
                         if (!picked) {
                             dr = d;
                             picked = true;
                             retain.add(jo);
                         }
                         else {
-                            if (Math.abs(dr.getTime() - dp.getTime()) < 12*3600) {
+                            if (Math.abs(dr - dp) < 24*3600*1000) {
                                 retain.add(jo);
                             }
                         }
@@ -276,10 +265,33 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
 
             }
             catch (JSONException e) {
-
+                e.printStackTrace();
             }
-            catch (ParseException e) {
+        }
+    }
 
+    private String getObjectives() throws IOException {
+        InputStream is = null;
+
+        try {
+            URL url = new URL("http://192.168.10.11/objectives");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+
+            // Starts the query
+            conn.connect();
+            int response = conn.getResponseCode();
+            Log.d("LOL", "The response is: " + response);
+            is = conn.getInputStream();
+
+            // Convert the InputStream into a string
+            return convertInputStreamToString(is);
+
+            // Makes sure that the InputStream is closed after the app is
+            // finished using it.
+        } finally {
+            if (is != null) {
+                is.close();
             }
         }
     }
@@ -314,6 +326,7 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
 
 
                 for (JSONObject jo : listdata) {
+                    Log.v("LO", jo.getString("balance"));
                     if (jo.getString("name").equals(android_id)) {
                         memoney += jo.getInt("balance");
                     }
@@ -321,6 +334,9 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
                         othmoney += jo.getInt("balance");
                     }
                 }
+
+                Log.v("LO", String.valueOf(memoney));
+                Log.v("LO", String.valueOf(othmoney));
                 ArrayList<String> xVals = new ArrayList<String>();
                 xVals.add("");
 
@@ -348,51 +364,19 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
         }
     }
 
-    private String getObjectives() throws IOException {
-        InputStream is = null;
 
-        try {
-            URL url = new URL("http://192.168.10.11/objectives");
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(6000);
-            conn.setConnectTimeout(7500);
-            conn.setDoOutput(true);
-            conn.setDoInput(true);
-            conn.setRequestMethod("GET");
-
-            // Starts the query
-            conn.connect();
-            int response = conn.getResponseCode();
-            Log.d("LO", "The response is: " + response);
-            is = conn.getInputStream();
-
-            // Convert the InputStream into a string
-            return convertInputStreamToString(is);
-
-            // Makes sure that the InputStream is closed after the app is
-            // finished using it.
-        } finally {
-            if (is != null) {
-                is.close();
-            }
-        }
-    }
     private String getMuneyz() throws IOException {
         InputStream is = null;
 
         try {
             URL url = new URL("http://192.168.10.11/balance");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(60000);
-            conn.setConnectTimeout(75000);
-            conn.setDoOutput(true);
-            conn.setDoInput(true);
             conn.setRequestMethod("GET");
 
             // Starts the query
             conn.connect();
             int response = conn.getResponseCode();
-            Log.d("LO", "The response is: " + response);
+            Log.d("LOLO", "The response is: " + response);
             is = conn.getInputStream();
 
             // Convert the InputStream into a string

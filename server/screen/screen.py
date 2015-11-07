@@ -95,7 +95,7 @@ class Screen():
         self.cur_time = 0
         # Split balance and percentage.
         [self.balance, percent] = [float(x) for x in line.split()]
-        self.general_level = int(round(percent/100.0 * SIZE))
+        self.general_level = int(round(min(max(0, percent), 100)/100.0 * SIZE))
         self.draw_check()
 
     def draw_check(self):
