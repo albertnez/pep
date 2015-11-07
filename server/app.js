@@ -49,7 +49,7 @@ router.post(/\/(.*)\/pay\/([0-9\.]+)/, function*(){
 		account = yield createAccount(this.params[0]);
 	//console.log(account);
 	yield payAccount(account,parseFloat(this.params[1]));
-
+	yield refreshDisplay();
 	this.body="Success";
 
 });
@@ -241,6 +241,7 @@ function checkObjectives(){
 			if(checkObjective(pepeaccount,i)) ++i;
 		}
 		yield saveAccount(pepeaccount);
+		yield refreshDisplay();
 	});
 }
 
