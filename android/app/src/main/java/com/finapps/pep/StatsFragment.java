@@ -118,28 +118,8 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
         l.setFormToTextSpace(4f);
         l.setXEntrySpace(6f);
 
-        // Add some sample data (TODO: Change with JSolàServer)
-        ArrayList<String> xVals = new ArrayList<String>();
-        xVals.add("");
 
-        myVals1.add(new BarEntry(new float[] {1.0f, 2.0f, 3.0f}, 0));
-
-        // From server too
-        yLabels.setAxisMaxValue(20f);
-
-        BarDataSet set1 = new BarDataSet(myVals1, " ");
-        set1.setColors(getColors());
-        set1.setStackLabels(new String[] { "PPL1", "PPL2", "PPL3" });
-
-        ArrayList<BarDataSet> dataSets = new ArrayList<>();
-        dataSets.add(set1);
-
-        BarData data = new BarData(xVals, dataSets);
-        data.setValueFormatter(new MyValueFormatter());
-        data.setValueTextSize(15.0f);
-
-        mChart.setData(data);
-        mChart.invalidate();
+        new GetObjectivesTask().execute();
 
         return v;
     }
@@ -292,7 +272,7 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
 
                 yLabels.setAxisMaxValue(total);
 
-                new GetMuneyzTask().;
+                new GetMuneyzTask().execute();
 
             }
             catch (JSONException e) {
@@ -335,12 +315,15 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
 
                 for (JSONObject jo : listdata) {
                     if (jo.getString("name").equals(android_id)) {
-                        memoney += ;
+                        memoney += jo.getInt("balance");
                     }
                     else {
-                        othmoney += ;
+                        othmoney += jo.getInt("balance");
                     }
                 }
+                ArrayList<String> xVals = new ArrayList<String>();
+                xVals.add("");
+
                 myVals1.clear();
                 myVals1.add(new BarEntry(new float[] {memoney, othmoney}, 0));
 
@@ -362,12 +345,38 @@ public class StatsFragment extends Fragment implements OnChartValueSelectedListe
             catch (JSONException e) {
 
             }
-            catch (ParseException e) {
-
-            }
         }
     }
 
+    private String getObjectives() throws IOException {
+        InputStream is = null;
+
+        try {
+            URL url = new URL("http://192.168.10.11/objectives");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setReadTimeout(6000);
+            conn.setConnectTimeout(7500);
+            conn.setDoOutput(true);
+            conn.setDoInput(true);
+            conn.setRequestMethod("GET");
+
+            // Starts the query
+            conn.connect();
+            int response = conn.getResponseCode();
+            Log.d("LO", "The response is: " + response);
+            is = conn.getInputStream();
+
+            // Convert the InputStream into a string
+            return convertInputStreamToString(is);
+
+            // Makes sure that the InputStream is closed after the app is
+            // finished using it.
+        } finally {
+            if (is != null) {
+                is.close();
+            }
+        }
+    }
     private String getMuneyz() throws IOException {
         InputStream is = null;
 
