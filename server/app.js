@@ -1,7 +1,6 @@
 var app = require('koa')();
 var koaBody = require("koa-body");
 var router  = require("koa-router")();
-var mongo = require('mongodb');
 var monk = require('monk');
 var co = require("co");
 
@@ -56,6 +55,19 @@ router.get(/\/objectives/, function*(){
 	this.body = pepeaccount.objectives.pending.concat(pepeaccount.objectives.done);
 });
 
+router.get(/\/balance/, function*(){
+
+	var accounts = yield findAllAccounts();
+
+	this.body = accounts.map(function(el){
+		return {
+			name: el.name,
+			balance: Math.floor((150+Math.random()*50)*100)/100
+		};
+	});
+
+});
+
 router.get(/\/transactions\/(day|month|year)/, function*(){
 	var pepeaccount = yield findAccount("_pepeAccount");
 	if(typeof pepeaccount == "undefined") pepeaccount = yield createAccount("_pepeAccount");
@@ -95,6 +107,14 @@ app.use(require('koa-static')("./static", {}));
 app.listen(80);
 console.log("Server listening");
 
+
+function findAllAccounts(){
+	return function(done){
+		db.find({"name":{"$ne":"_pepeAccount"}},function(err,data){
+				done(null,data);
+		});
+	}
+}
 
 function findAccount(name){
 	return function(done){
@@ -197,6 +217,8 @@ function checkObjective(acc,i){
 	if((new Date()).valueOf() > ob.date){
 		console.log("Old");
 		var ret = true;
+
+		acc.money -=  ob.value;
 
 		switch(ob.period){
 			case YEAR:
