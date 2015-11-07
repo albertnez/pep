@@ -129,7 +129,7 @@ public class PayFragment extends Fragment {
     public void NFCdetected() {
         String money = Integer.toString(mAmount);
         Toast.makeText(getActivity(), "You paid " + money, Toast.LENGTH_SHORT).show();
-        // doPayMoney();
+        doPayMoney();
     }
 
     private void doPayMoney() {
