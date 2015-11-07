@@ -200,10 +200,6 @@ public class TransactionsFragment extends Fragment {
         try {
             URL url = new URL("http://192.168.10.11/transactions/year");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(60000);
-            conn.setConnectTimeout(75000);
-            conn.setDoOutput(true);
-            conn.setDoInput(true);
             conn.setRequestMethod("GET");
 
             // Starts the query
